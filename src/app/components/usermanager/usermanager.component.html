@@ -1,7 +1,7 @@
 <!-- User Manager Component -->
 
 <h2>Search Users</h2>
-<form (ngSubmit)="searchUsers(currentSearch)" class="search-form">
+<form class="search-form">
   <div class="form-group">
     <label for="searchName">Name:</label>
     <input id="searchName" [(ngModel)]="currentSearch.name" name="searchName">
@@ -12,7 +12,8 @@
     <input id="searchRole" [(ngModel)]="currentSearch.role" name="searchRole">
   </div>
 
-  <button [disabled]="editingIndex !== null" type="submit">Search</button>
+  <button [disabled]="editingIndex !== null" (click)="searchUsers(currentSearch)"  type="submit">Search</button>
+  <button [disabled]="editingIndex !== null" (click)="resetAndSearch()"  type="submit">Clear Search</button>
 </form>
 
 <h2>Users List</h2>
@@ -63,3 +64,7 @@
     </tr>
   </tbody>
 </table>
+
+<div *ngIf="isLoading" class="loading-overlay">
+  <div class="loading-spinner"></div>
+</div>

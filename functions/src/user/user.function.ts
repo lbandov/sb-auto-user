@@ -1,51 +1,43 @@
 import * as functions from "firebase-functions/v2";
-import {Timestamp, FieldValue, DocumentData,
+import {FieldValue, DocumentData,
   CollectionReference, Query} from "firebase-admin/firestore";
 import {corsHandler, db} from "../index";
+import {User} from "../models/user.model";
 
 const fvServerTimeStamp: FieldValue = FieldValue.serverTimestamp();
 functions.setGlobalOptions({region: "europe-west1"});
 
-export interface User {
-    id: string;
-    name: string;
-    role: string;
-    enabled: boolean;
-    date: Timestamp;
-}
-
 export const addUser = functions.https.onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
-    const {name, role} = req.body;
+    const {name, role, enabled} = req.body;
     try {
       const docRef = await db.collection("users").add({
         name,
         role,
         date: fvServerTimeStamp,
-        enabled: true,
+        enabled,
         nameLower: name.toLowerCase(),
         roleLower: role.toLowerCase(),
       });
-      console.log("Document written with ID: ", docRef.id);
       res.json({message: "Document written with ID: " + docRef.id});
     } catch (error) {
-      console.error("Error adding user:", error);
       res.status(500).send("Error adding user");
     }
   });
 });
 
 export const getUsers = functions.https.onRequest({}, async (req, res) => {
+  functions.logger.info("Origin:", req.headers.origin);
   corsHandler(req, res, async () => {
     try {
-      const querySnapshot = await db.collection("users").get();
+      const querySnapshot = await db.collection("users")
+        .orderBy("date", "asc").get();
       const users: User[] = [];
       querySnapshot.forEach((doc) => {
         users.push({id: doc.id, ...doc.data()} as unknown as User);
       });
       res.json(users);
     } catch (error) {
-      console.error("Error retrieving users:", error);
       res.status(500).send("Error retrieving users");
     }
   });

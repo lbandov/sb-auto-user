@@ -3,6 +3,8 @@ import { UserService } from '../../services/user.service';
 import { User } from '../../models/user.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { finalize } from 'rxjs/operators';
+import { SearchCriteria } from '../../models/searchcriteria.model';
 
 @Component({
   selector: 'app-usermanager',
@@ -15,11 +17,12 @@ export class UserManagerComponent implements OnInit {
   users: User[] = [];
   currentUser: User | null = null;
   errorMessage: string = '';
-  newUser: Partial<User> = { enabled: false }; // Partial<User> allows us to have an initially incomplete user object
+  newUser: Partial<User> = { enabled: false };
   editingIndex: number | null = null; 
   currentSearch: SearchCriteria = { name: '', role: '' };
-  showAddUserForm: boolean = false;
-  
+  showAddUserForm = false;
+  isLoading = false;
+
   constructor(private userService: UserService) {}
 
   ngOnInit() {
@@ -27,7 +30,10 @@ export class UserManagerComponent implements OnInit {
   }
 
   loadUsers() {
-    this.userService.getUsers().subscribe({
+    this.toggleLoading();
+    this.userService.getUsers()
+    .pipe(finalize(() => this.toggleLoading()))
+    .subscribe({
       next: (users: User[]) => this.users = users,
       error: (err) => {
         console.error('Error fetching users:', err);
@@ -41,13 +47,18 @@ export class UserManagerComponent implements OnInit {
       this.errorMessage = 'Name and role are required';
       return;
     }
-    console.log("NEW USER",this.newUser);
-    this.userService.addUser(this.newUser as User).subscribe({
+
+    this.toggleLoading();
+    this.userService.addUser(this.newUser as User)
+    .pipe(finalize(() => {
+      this.toggleLoading();
+      this.toggleAddUserForm();
+    }))
+    .subscribe({
       next: () => {
         this.loadUsers();
         this.newUser = { enabled: false }; // Reset form
         this.errorMessage = ''; // Clear any error messages
-        this.showAddUserForm = false;
       },
       error: () => this.errorMessage = 'Failed to add user'
     });
@@ -55,23 +66,30 @@ export class UserManagerComponent implements OnInit {
 
   updateUser(updatedUser: User) {
     if (!updatedUser.id) return;
-    this.userService.updateUser(updatedUser).subscribe({
-      next: () => this.loadUsers(), // Reload users to reflect updates
+    this.toggleLoading();
+    this.userService.updateUser(updatedUser)
+    .pipe(finalize(() => this.toggleLoading()))
+    .subscribe({
+      next: () => this.loadUsers(),
       error: (error) => console.error('Failed to update user', error),
     });
   }
 
   deleteUser(id: string) {
-    this.userService.deleteUser(id).subscribe({
-      next: () => this.loadUsers(), // Reload users to reflect deletion
+    this.toggleLoading
+    this.userService.deleteUser(id)
+    .pipe(finalize(() => this.toggleLoading()))
+    .subscribe({
+      next: () => this.loadUsers(),
       error: (error) => console.error('Failed to delete user', error),
     });
   }
 
   searchUsers(criteria: SearchCriteria) {
-    this.currentSearch = criteria;
-    console.log('Searching for users with criteria:', criteria);
-    this.userService.searchUsers(criteria.name, criteria.role).subscribe({
+    this.toggleLoading();
+    this.userService.searchUsers(criteria.name, criteria.role)
+    .pipe(finalize(() => this.toggleLoading()))
+    .subscribe({
       next: (users: User[]) => {
         this.users = users;
       },
@@ -90,26 +108,14 @@ export class UserManagerComponent implements OnInit {
   toggleAddUserForm() {
     this.showAddUserForm = !this.showAddUserForm;
   }
-/*
-  addUserFormSubmit() {
-    const newUser: User = {
-      name: "",
-      role: "",
-      enabled: false,
-      id: "",
-      date: new Date()
-    };
-  
-    // Add the new user to the users array (at the end)
-    this.users.push(newUser);
-  
-    // Reset the newUser object for the next entry and hide the form
-    this.newUser = { name: '', role: '', enabled: false }; // Reset newUser
-    this.toggleAddUserForm(); // Hide the form after adding
-  }*/
+
+  toggleLoading(){
+    this.isLoading = !this.isLoading;
+  }
+
+  resetAndSearch() {
+    this.currentSearch = {name: '', role: ''};
+    this.searchUsers(this.currentSearch); 
+  }
 }
 
-interface SearchCriteria {
-  name: string;
-  role: string;
-}
