@@ -1,6 +1,6 @@
 import * as functions from "firebase-functions/v2";
 import {FieldValue, DocumentData,
-  CollectionReference, Query} from "firebase-admin/firestore";
+  Query} from "firebase-admin/firestore";
 import {corsHandler, db} from "../index";
 import {User} from "../models/user.model";
 
@@ -34,7 +34,7 @@ export const getUsers = functions.https.onRequest({}, async (req, res) => {
         .orderBy("date", "asc").get();
       const users: User[] = [];
       querySnapshot.forEach((doc) => {
-        users.push({id: doc.id, ...doc.data()} as unknown as User);
+        users.push({id: doc.id, ...doc.data()} as User);
       });
       res.json(users);
     } catch (error) {
@@ -58,10 +58,9 @@ export const updateUser = functions.https.onRequest(async (req, res) => {
       }
 
       const currentUser = doc.data() as User;
-
       const isDifferent = name !== currentUser.name ||
-    role !== currentUser.role ||
-    enabled !== currentUser.enabled;
+      role !== currentUser.role ||
+      enabled !== currentUser.enabled;
 
       if (isDifferent) {
       // Only update if there's a difference
@@ -69,7 +68,8 @@ export const updateUser = functions.https.onRequest(async (req, res) => {
           name,
           role,
           enabled,
-          date: fvServerTimeStamp,
+          nameLower: name?.toLowerCase(),
+          roleLower: role?.toLowerCase(),
         }, {merge: true});
         res.send("User updated");
       } else {
@@ -98,14 +98,12 @@ export const deleteUser = functions.https.onRequest(async (req, res) => {
 
 export const searchUsers = functions.https.onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
-    const {name, role} = req.query;
+    const {name, role, status} = req.query;
 
     try {
       const collectionRef = db.collection("users");
 
-      let query: Query<DocumentData>
-      | CollectionReference<DocumentData> = collectionRef;
-
+      let query: Query<DocumentData> = collectionRef;
       if (name) {
         const nameLower = (name as string).toLowerCase();
         const nameStart = nameLower;
@@ -115,7 +113,7 @@ export const searchUsers = functions.https.onRequest(async (req, res) => {
           .where("nameLower", "<=", nameEnd);
       }
 
-      if (role) {
+      if (!name && role) {
         const roleLower = (role as string).toLowerCase();
         const roleStart = roleLower;
         const roleEnd = roleLower + "\uf8ff";
@@ -125,10 +123,20 @@ export const searchUsers = functions.https.onRequest(async (req, res) => {
       }
 
       const querySnapshot = await query.get();
-      const users: User[] = [];
+      let users: User[] = [];
       querySnapshot.forEach((doc) => {
-        users.push({...doc.data() as User});
+        users.push({id: doc.id, ...doc.data()} as User);
       });
+
+      if (name && role) {
+        users = users.filter((user) =>
+          user.roleLower.includes((role as string).toLowerCase()));
+      }
+      const parsedStatus = parseInt(status as string);
+      if (parsedStatus>0) {
+        users = users.filter((user) =>
+          user.enabled === (parsedStatus === 1));
+      }
 
       res.json(users);
     } catch (error) {

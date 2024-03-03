@@ -19,7 +19,7 @@ export class UserManagerComponent implements OnInit {
   errorMessage: string = '';
   newUser: Partial<User> = { enabled: false };
   editingIndex: number | null = null; 
-  currentSearch: SearchCriteria = { name: '', role: '' };
+  currentSearch: SearchCriteria = { name: '', role: '', status: 0 };
   showAddUserForm = false;
   isLoading = false;
 
@@ -65,12 +65,15 @@ export class UserManagerComponent implements OnInit {
   }
 
   updateUser(updatedUser: User) {
-    if (!updatedUser.id) return;
+    console.log("UPDATe",updatedUser)
     this.toggleLoading();
     this.userService.updateUser(updatedUser)
-    .pipe(finalize(() => this.toggleLoading()))
+    .pipe(finalize(() => {
+      this.toggleLoading()
+      this.cancelEdit();
+    }))
     .subscribe({
-      next: () => this.loadUsers(),
+      next: () => this.searchUsers(this.currentSearch),
       error: (error) => console.error('Failed to update user', error),
     });
   }
@@ -87,7 +90,7 @@ export class UserManagerComponent implements OnInit {
 
   searchUsers(criteria: SearchCriteria) {
     this.toggleLoading();
-    this.userService.searchUsers(criteria.name, criteria.role)
+    this.userService.searchUsers(criteria.name, criteria.role, criteria.status)
     .pipe(finalize(() => this.toggleLoading()))
     .subscribe({
       next: (users: User[]) => {
@@ -95,6 +98,11 @@ export class UserManagerComponent implements OnInit {
       },
       error: (error) => console.error('Failed to search users', error),
     }); 
+  }
+
+  radioSearch(status: number) {
+    this.currentSearch.status = status;
+    this.searchUsers(this.currentSearch)
   }
 
   cancelEdit(): void {
@@ -114,8 +122,8 @@ export class UserManagerComponent implements OnInit {
   }
 
   resetAndSearch() {
-    this.currentSearch = {name: '', role: ''};
-    this.searchUsers(this.currentSearch); 
+    this.currentSearch = {name: '', role: '', status: 0};
+    this.loadUsers();
   }
 }
 

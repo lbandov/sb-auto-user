@@ -10,7 +10,7 @@ body {
   
   .search-form {
     display: grid;
-    grid-template-columns: 1fr 1fr 150px 150px;
+    grid-template-columns: 1fr 1fr 150px 150px 230px;
     gap: 8px;
     align-items: center;
     margin-bottom: 16px;
@@ -18,7 +18,7 @@ body {
     background-color: #f1f1f1;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    max-width: 700px; 
+    max-width: 950px; 
   }
   
   .search-form .form-group {
@@ -53,12 +53,57 @@ body {
       background-color: #004494;
     }
   }
+/* Style adjustments for segmented control appearance */
+.status-button-group {
+  display: inline-flex;
+  border: 2px solid #0056b3; 
+  border-radius: 8px;
+  overflow: hidden; /* Ensures the border-radius applies to children */
+}
+
+.status-button-group label {
+  background-color: #0056b3;
+  color: white;
+  padding: 10px 15px;
+  margin: 0;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.status-button-group label:hover {
+  background-color: #004494;
+}
+
+.status-button-group input[type="radio"] {
+  display: none;
+}
+
+.status-button-group input[type="radio"]:checked + label {
+  background-color: #020e1d; 
+}
+
+.status-button-group label:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.status-button-group label:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+  
   /* Table Styling */
   table {
     width: 50%;
     border-collapse: collapse;
     margin-bottom: 32px;
   }
+
+  .disabled-user {
+    opacity: 0.5;
+    background-color: #f0f0f0; 
+  }
+  
   
   th, td {
     border: 1px solid #ccc;
@@ -100,7 +145,7 @@ body {
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
-    margin-right: 4px; // Space between buttons
+    margin-right: 4px;
   
     &:hover {
       opacity: 0.8;
@@ -112,7 +157,7 @@ body {
     }
   
     &.edit-btn, &.delete-btn, &.save-btn, &.cancel-btn {
-      min-width: 75px; // Ensure buttons have a consistent width
+      min-width: 75px; 
     }
   
     &.edit-btn {
@@ -161,8 +206,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
-  z-index: 9999; /* Ensure it's on top of other content */
+  background-color: rgba(0, 0, 0, 0.6); 
+  z-index: 9999; 
   display: flex;
   justify-content: center;
   align-items: center;
@@ -176,6 +221,7 @@ body {
   height: 50px;
   animation: spin 1s linear infinite;
 }
+
 
 @keyframes spin {
   0% {

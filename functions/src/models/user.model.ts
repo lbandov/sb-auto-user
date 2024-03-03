@@ -6,4 +6,6 @@ export interface User {
     role: string;
     enabled: boolean;
     date: Timestamp;
+    nameLower: string;
+    roleLower: string;
 }

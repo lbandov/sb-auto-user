@@ -1,5 +1,5 @@
 <!-- User Manager Component -->
-
+<h1>User Manager</h1>
 <h2>Search Users</h2>
 <form class="search-form">
   <div class="form-group">
@@ -13,7 +13,19 @@
   </div>
 
   <button [disabled]="editingIndex !== null" (click)="searchUsers(currentSearch)"  type="submit">Search</button>
-  <button [disabled]="editingIndex !== null" (click)="resetAndSearch()"  type="submit">Clear Search</button>
+  <button [disabled]="editingIndex !== null" (click)="resetAndSearch()"  type="submit">Reset</button>
+
+  <div class="status-button-group">
+    <input type="radio" id="statusAll" name="status" value="0" (change)="radioSearch(0)"checked>
+    <label for="statusAll">All</label>
+    
+    <input type="radio" id="statusEnabled" name="status" value="1" (change)="radioSearch(1)">
+    <label for="statusEnabled" (click)="radioSearch(1)">Enabled</label>
+    
+    <input type="radio" id="statusDisabled" name="status" value="2" (change)="radioSearch(2)">
+    <label for="statusDisabled" (click)="radioSearch(2)">Disabled</label>
+  </div>
+
 </form>
 
 <h2>Users List</h2>
@@ -39,9 +51,9 @@
         </td>
       </ng-container>
       <ng-template #viewMode>
-        <td>{{ user.name }}</td>
-        <td>{{ user.role }}</td>
-        <td>Enabled: {{ user.enabled ? 'Yes' : 'No' }}</td>
+        <td [ngClass]="{'disabled-user': !user.enabled}">{{ user.name }}</td>
+        <td [ngClass]="{'disabled-user': !user.enabled}">{{ user.role }}</td>
+        <td>{{ user.enabled ? 'Yes' : 'No' }}</td>
         <td>
           <button (click)="startEdit(i)" [disabled]="editingIndex !== null && editingIndex !== i">Edit</button>
           <button (click)="deleteUser(user.id)" [disabled]="editingIndex !== null">Delete</button>

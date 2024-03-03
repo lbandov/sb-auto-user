@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class UserService {
-  private baseUrl = '-hjrtd2t7gq-ew.a.run.app'; // Update this with your actual Cloud Functions base URL
+  private baseUrl = '-hjrtd2t7gq-ew.a.run.app';
   private http = inject(HttpClient);
 
   constructor() { }
@@ -27,8 +27,7 @@ export class UserService {
   deleteUser(id: string): Observable<any>  {
     return this.http.post(`https://deleteuser${this.baseUrl}`, { id }, { responseType: 'text' });
   }
-  searchUsers(name: string, role: string): Observable<User[]> {
-    // Initialize HttpParams
+  searchUsers(name: string, role: string, status: number): Observable<User[]> {
     let params = new HttpParams();
     if (name) {
       params = params.append('name', name);
@@ -36,11 +35,11 @@ export class UserService {
     if (role) {
       params = params.append('role', role);
     }
-
-    // Construct the URL with query parameters
+    if (status) {
+      params = params.append('status', status);
+    }
     const searchUrl = `https://searchUsers${this.baseUrl}`;
 
-    // Make the GET request with the search parameters
     return this.http.get<User[]>(searchUrl, { params });
   }
 }
