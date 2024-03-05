@@ -46,9 +46,13 @@
         <td><input type="text" [(ngModel)]="user.role" required></td>
         <td><input type="checkbox" [(ngModel)]="user.enabled"></td>
         <td>
-          <button (click)="updateUser(user)">Save</button>
-          <button (click)="cancelEdit()">Cancel</button>
+          <button (click)="updateUser(user, i)">Save</button>
+          <button (click)="cancelEdit(true)">Cancel</button>
+          <div *ngIf="showErrorFoxIndex === i" class="error-message">
+            {{ errorMessage }}
+          </div>
         </td>
+        
       </ng-container>
       <ng-template #viewMode>
         <td [ngClass]="{'disabled-user': !user.enabled}">{{ user.name }}</td>
@@ -69,10 +73,13 @@
           <input type="checkbox" id="enabled" [(ngModel)]="newUser.enabled" name="enabled">
         </td>
       <td>
-        <button type="submit" (click)="addUserFormSubmit()" [disabled]="editingIndex !== null">Add User</button>
+        <button type="submit" (click)="addUserFormSubmit(-1)" [disabled]="editingIndex !== null">Add User</button>
         <button (click)="toggleAddUserForm()">Cancel</button>
+        <div *ngIf="showErrorFoxIndex === -1" class="error-message">
+          {{ errorMessage }}
+        </div>
       </td>
-        
+      
     </tr>
   </tbody>
 </table>

@@ -1,12 +1,13 @@
 // In index.ts
-import * as userFunctions from "./user/user.function";
+import * as userCrudFunctions from "./user/user.function";
+import * as userSearchFunctions from "./user/searchusers.function";
 import {getFirestore, Firestore} from "firebase-admin/firestore";
 import {initializeApp} from "firebase-admin/app";
 import * as cors from "cors";
 
 initializeApp();
-
 const corsOptionsDelegate: cors.CorsOptionsDelegate = (req, callback) => {
+  callback(null, {origin: true});/*
   const allowedOrigins = ["https://sb-auto-user-manager.web.app"];
   const requestOrigin = req.headers.origin;
 
@@ -14,11 +15,13 @@ const corsOptionsDelegate: cors.CorsOptionsDelegate = (req, callback) => {
     callback(null, {origin: true});
   } else {
     callback(null, {origin: false});
-  }
+  }*/
 };
 export const corsHandler = cors(corsOptionsDelegate);
 
 export const db: Firestore = getFirestore();
 
-export const {addUser, getUsers, updateUser,
-  deleteUser, searchUsers} = userFunctions;
+/** User sectopm*/
+export const {addUser, getUsers, updateUser, deleteUser} = userCrudFunctions;
+export const {searchUsers} = userSearchFunctions;
+

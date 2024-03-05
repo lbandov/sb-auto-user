@@ -16,13 +16,14 @@ import { SearchCriteria } from '../../models/searchcriteria.model';
 export class UserManagerComponent implements OnInit {
   users: User[] = [];
   currentUser: User | null = null;
+  oldUserData: User | null = null;
   errorMessage: string = '';
   newUser: Partial<User> = { enabled: false };
   editingIndex: number | null = null; 
   currentSearch: SearchCriteria = { name: '', role: '', status: 0 };
   showAddUserForm = false;
   isLoading = false;
-
+  showErrorFoxIndex: number | null = null
   constructor(private userService: UserService) {}
 
   ngOnInit() {
@@ -42,9 +43,10 @@ export class UserManagerComponent implements OnInit {
     });
   }
 
-  addUserFormSubmit() {
-    if (!this.newUser.name || !this.newUser.role) {
+  addUserFormSubmit(index: number) {
+    if (this.isUserInvalid(this.newUser.name, this.newUser.role)) {
       this.errorMessage = 'Name and role are required';
+      this.showErrorFoxIndex = index;
       return;
     }
 
@@ -59,18 +61,26 @@ export class UserManagerComponent implements OnInit {
         this.loadUsers();
         this.newUser = { enabled: false }; // Reset form
         this.errorMessage = ''; // Clear any error messages
+        this.showErrorFoxIndex = null
       },
       error: () => this.errorMessage = 'Failed to add user'
     });
   }
 
-  updateUser(updatedUser: User) {
-    console.log("UPDATe",updatedUser)
+  updateUser(updatedUser: User, index: number) {
+    if(this.isUserInvalid(updatedUser.name, updatedUser.role)){
+      this.errorMessage = "Please enter name and role"
+      this.showErrorFoxIndex = index;
+      return;
+    }
+
     this.toggleLoading();
     this.userService.updateUser(updatedUser)
     .pipe(finalize(() => {
       this.toggleLoading()
       this.cancelEdit();
+      this.errorMessage = '';
+      this.showErrorFoxIndex = null
     }))
     .subscribe({
       next: () => this.searchUsers(this.currentSearch),
@@ -105,16 +115,22 @@ export class UserManagerComponent implements OnInit {
     this.searchUsers(this.currentSearch)
   }
 
-  cancelEdit(): void {
+  cancelEdit(isClick: boolean = false): void {
+    if(isClick){
+      this.users[this.editingIndex as number] = {...this.oldUserData} as User;
+    }
     this.editingIndex = null;
+    this.showErrorFoxIndex = null;
   }
 
   startEdit(index: number): void {
+    this.oldUserData = {...this.users[index]};
     this.editingIndex = index;
   }
 
   toggleAddUserForm() {
     this.showAddUserForm = !this.showAddUserForm;
+    this.showErrorFoxIndex = null;
   }
 
   toggleLoading(){
@@ -124,6 +140,10 @@ export class UserManagerComponent implements OnInit {
   resetAndSearch() {
     this.currentSearch = {name: '', role: '', status: 0};
     this.loadUsers();
+  }
+
+  isUserInvalid(name?: string, role?: string): boolean{
+    return !name || !role;
   }
 }
 
