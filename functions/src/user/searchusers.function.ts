@@ -34,7 +34,7 @@ export const searchUsers = functions.https.onRequest(async (req, res) => {
       querySnapshot.forEach((doc) => {
         users.push({id: doc.id, ...doc.data()} as User);
       });
-
+      users.sort((a, b) => a.date.toMillis() - b.date.toMillis());
       if (name && role) {
         users = users.filter((user) =>
           user.roleLower.includes((role as string).toLowerCase()));

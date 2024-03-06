@@ -7,19 +7,21 @@ functions.setGlobalOptions({region: "europe-west1"});
 export const addUser = functions.https.onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
     const {name, role, enabled} = req.body;
-    if (isUserInvalid(name, role)) {
+    const trimName = name.trim();
+    const trimRole = role.trim();
+
+    if (isUserInvalid(trimName, trimRole)) {
       res.status(400).send("Please supply a name and a role for the user");
       return;
     }
-
     try {
       const docRef = await db.collection("users").add({
-        name: name.trim(),
-        role: role.trim(),
+        name: trimName,
+        role: trimRole,
         date: FieldValue.serverTimestamp(),
         enabled,
-        nameLower: name.trim().toLowerCase(),
-        roleLower: role.trim().toLowerCase(),
+        nameLower: trimName.toLowerCase(),
+        roleLower: trimRole.toLowerCase(),
       });
       res.json({message: "Document written with ID: " + docRef.id});
     } catch (error) {
@@ -57,7 +59,10 @@ export const updateUser = functions.https.onRequest(async (req, res) => {
         return;
       }
 
-      if (isUserInvalid(name, role)) {
+      const trimName = name.trim();
+      const trimRole = role.trim();
+
+      if (isUserInvalid(trimName, trimRole)) {
         res.status(400).send("Please supply a name and a role for the user");
         return;
       }
@@ -69,11 +74,11 @@ export const updateUser = functions.https.onRequest(async (req, res) => {
 
       if (isDifferent) {
         await userRef.set({
-          name: name.trim(),
-          role: role.trim(),
+          name: trimName,
+          role: trimRole,
           enabled,
-          nameLower: name?.trim().toLowerCase(),
-          roleLower: role?.trim().toLowerCase(),
+          nameLower: trimName.toLowerCase(),
+          roleLower: trimRole.toLowerCase(),
         }, {merge: true});
         res.send("User updated");
       } else {

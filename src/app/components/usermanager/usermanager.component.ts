@@ -84,17 +84,15 @@ export class UserManagerComponent implements OnInit {
     }))
     .subscribe({
       next: () => {
-        const iSearchInUse = !this.currentSearch.name || !this.currentSearch.role|| this.currentSearch.status === 0;
-        if(iSearchInUse){
-          this.searchUsers(this.currentSearch);
-        } else this.loadUsers();
-        this.searchUsers(this.currentSearch)},
+        const isSearchEmpty = !this.currentSearch.name || !this.currentSearch.role || this.currentSearch.status === 0;
+        isSearchEmpty ? this.loadUsers() : this.searchUsers(this.currentSearch);
+      },
       error: (error) => console.error('Failed to update user', error),
     });
   }
 
   deleteUser(id: string) {
-    this.toggleLoading
+    this.toggleLoading();
     this.userService.deleteUser(id)
     .pipe(finalize(() => this.toggleLoading()))
     .subscribe({
@@ -148,7 +146,12 @@ export class UserManagerComponent implements OnInit {
   }
 
   isUserInvalid(name?: string, role?: string): boolean{
-    return !name || !role;
+    if( !name || !role){
+      return true;
+    }
+    const trimName = name?.trim();
+    const trimrole = role?.trim();
+    return !trimName || !trimrole;
   }
 }
 
