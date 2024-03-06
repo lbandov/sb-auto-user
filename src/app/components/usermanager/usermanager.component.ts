@@ -83,7 +83,12 @@ export class UserManagerComponent implements OnInit {
       this.showErrorFoxIndex = null
     }))
     .subscribe({
-      next: () => this.searchUsers(this.currentSearch),
+      next: () => {
+        const iSearchInUse = !this.currentSearch.name || !this.currentSearch.role|| this.currentSearch.status === 0;
+        if(iSearchInUse){
+          this.searchUsers(this.currentSearch);
+        } else this.loadUsers();
+        this.searchUsers(this.currentSearch)},
       error: (error) => console.error('Failed to update user', error),
     });
   }
